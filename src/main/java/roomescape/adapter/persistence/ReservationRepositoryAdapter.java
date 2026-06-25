@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
+import roomescape.adapter.persistence.entity.ReservationEntity;
 import roomescape.domain.Reservation;
 import roomescape.domain.repository.ReservationRepository;
 
@@ -21,19 +22,17 @@ public class ReservationRepositoryAdapter implements ReservationRepository {
 
     @Override
     public List<Reservation> findAll() {
-        return jpaRepository.findAll();
+        return jpaRepository.findAll().stream().map(ReservationEntity::toDomain).toList();
     }
 
     @Override
     public Reservation save(Reservation reservation) {
-        return jpaRepository.save(reservation);
+        return jpaRepository.save(ReservationEntity.from(reservation)).toDomain();
     }
 
     @Override
     public void deleteById(Long id) {
-        // delete-before-insert 보장: JPA 쓰기지연은 flush 시 INSERT→UPDATE→DELETE로 재정렬한다.
-        // 승급 흐름(취소→같은 슬롯 대기 승격)에서 IDENTITY save가 즉시 INSERT되므로, 옇 예약 DELETE를
-        // 먼저 flush하지 않으면 UNIQUE(date,time_id,theme_id) 충돌. JDBC의 즉시 DELETE 의미를 복원.
+        // delete-before-insert 보장: 승급 흐름에서 역 예약 DELETE를 먼저 flush (UNIQUE 충돌 방지)
         jpaRepository.deleteById(id);
         jpaRepository.flush();
     }
@@ -55,12 +54,14 @@ public class ReservationRepositoryAdapter implements ReservationRepository {
 
     @Override
     public List<Reservation> findByNameOrderByDateAscTimeAsc(String name) {
-        return jpaRepository.findByNameOrderByDateAscTime_StartAtAsc(name);
+        return jpaRepository.findByNameOrderByDateAscTime_StartAtAsc(name).stream()
+                .map(ReservationEntity::toDomain)
+                .toList();
     }
 
     @Override
     public Optional<Reservation> findById(Long id) {
-        return jpaRepository.findById(id);
+        return jpaRepository.findById(id).map(ReservationEntity::toDomain);
     }
 
     @Override
@@ -70,7 +71,6 @@ public class ReservationRepositoryAdapter implements ReservationRepository {
 
     @Override
     public void updateDateAndTime(Long id, LocalDate date, Long timeId) {
-        // 과도기 의미 보존: bulk update. time 은 식별자 프록시로 참조.
         jpaRepository.updateDateAndTime(id, date, timeJpaRepository.getReferenceById(timeId));
     }
 

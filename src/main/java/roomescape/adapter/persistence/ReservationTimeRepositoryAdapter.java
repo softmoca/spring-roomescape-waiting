@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
+import roomescape.adapter.persistence.entity.ReservationTimeEntity;
 import roomescape.domain.ReservationTime;
 import roomescape.domain.repository.ReservationTimeRepository;
 
@@ -18,17 +19,17 @@ public class ReservationTimeRepositoryAdapter implements ReservationTimeReposito
 
     @Override
     public List<ReservationTime> findAll() {
-        return jpaRepository.findAll();
+        return jpaRepository.findAll().stream().map(ReservationTimeEntity::toDomain).toList();
     }
 
     @Override
     public Optional<ReservationTime> findById(Long id) {
-        return jpaRepository.findById(id);
+        return jpaRepository.findById(id).map(ReservationTimeEntity::toDomain);
     }
 
     @Override
     public ReservationTime save(ReservationTime time) {
-        return jpaRepository.save(time);
+        return jpaRepository.save(ReservationTimeEntity.from(time)).toDomain();
     }
 
     @Override
@@ -38,6 +39,6 @@ public class ReservationTimeRepositoryAdapter implements ReservationTimeReposito
 
     @Override
     public List<ReservationTime> findAvailable(LocalDate date, Long themeId) {
-        return jpaRepository.findAvailable(date, themeId);
+        return jpaRepository.findAvailable(date, themeId).stream().map(ReservationTimeEntity::toDomain).toList();
     }
 }

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
+import roomescape.adapter.persistence.entity.WaitingEntity;
 import roomescape.domain.Waiting;
 import roomescape.domain.repository.WaitingRepository;
 
@@ -18,17 +19,19 @@ public class WaitingRepositoryAdapter implements WaitingRepository {
 
     @Override
     public Waiting save(Waiting waiting) {
-        return jpaRepository.save(waiting);
+        return jpaRepository.save(WaitingEntity.from(waiting)).toDomain();
     }
 
     @Override
     public List<Waiting> findBySlot(LocalDate date, Long timeId, Long themeId) {
-        return jpaRepository.findByDateAndTime_IdAndTheme_IdOrderByOrderIndexAsc(date, timeId, themeId);
+        return jpaRepository.findByDateAndTime_IdAndTheme_IdOrderByOrderIndexAsc(date, timeId, themeId).stream()
+                .map(WaitingEntity::toDomain)
+                .toList();
     }
 
     @Override
     public Optional<Waiting> findById(Long id) {
-        return jpaRepository.findById(id);
+        return jpaRepository.findById(id).map(WaitingEntity::toDomain);
     }
 
     @Override
@@ -43,6 +46,8 @@ public class WaitingRepositoryAdapter implements WaitingRepository {
 
     @Override
     public List<Waiting> findByName(String name) {
-        return jpaRepository.findByNameOrderByDateAscTime_StartAtAsc(name);
+        return jpaRepository.findByNameOrderByDateAscTime_StartAtAsc(name).stream()
+                .map(WaitingEntity::toDomain)
+                .toList();
     }
 }
