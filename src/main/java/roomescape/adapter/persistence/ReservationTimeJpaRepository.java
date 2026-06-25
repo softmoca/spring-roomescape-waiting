@@ -5,17 +5,16 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import roomescape.domain.ReservationTime;
+import roomescape.adapter.persistence.entity.ReservationTimeEntity;
 
-public interface ReservationTimeJpaRepository extends JpaRepository<ReservationTime, Long> {
+public interface ReservationTimeJpaRepository extends JpaRepository<ReservationTimeEntity, Long> {
 
-    // Reservation 이 엔티티가 되어 native -> JPQL 안티조인으로 승격.
     @Query("""
-            select rt from ReservationTime rt
+            select rt from ReservationTimeEntity rt
             where rt.id not in (
-                select r.time.id from Reservation r
+                select r.time.id from ReservationEntity r
                 where r.date = :date and r.theme.id = :themeId
             )
             """)
-    List<ReservationTime> findAvailable(@Param("date") LocalDate date, @Param("themeId") Long themeId);
+    List<ReservationTimeEntity> findAvailable(@Param("date") LocalDate date, @Param("themeId") Long themeId);
 }
