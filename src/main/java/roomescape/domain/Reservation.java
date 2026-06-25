@@ -1,45 +1,18 @@
 package roomescape.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDate;
 import roomescape.domain.exception.InvalidDomainException;
 import roomescape.domain.policy.ReservationPolicy;
 
-@Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"date", "time_id", "theme_id"}))
-public class Reservation {
+public final class Reservation {
+
     private static final int MAX_NAME_LENGTH = 30;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false, length = MAX_NAME_LENGTH)
-    private String name;
-
-    @Column(nullable = false)
-    private LocalDate date;
-
-    // 단방향 @ManyToOne. 3-1에서 EAGER→LAZY 전환(N+1 제거) + 조회 경로는 @EntityGraph fetch join.
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "time_id")
-    private ReservationTime time;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "theme_id")
-    private Theme theme;
-
-    protected Reservation() {
-    }
+    private final Long id;
+    private final String name;
+    private final LocalDate date;
+    private final ReservationTime time;
+    private final Theme theme;
 
     private Reservation(Long id, String name, LocalDate date, ReservationTime time, Theme theme) {
         validate(name, date, time, theme);
